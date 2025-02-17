@@ -1,143 +1,45 @@
 import pandas
-import json 
-list_data = []
-inst = []
-instructors1 = []
-instructors2 = []
-instructors3 = []
-sec_no = ""
-sec_type = ""
-room =""
-excel = "Timetable Workbook - SUTT Task 1.xlsx"
-LST = ["S1","S2","S3","S4","S6"]
-dict2 = {}
-dict3 = {}
-ch =""
-for i in LST:
-    df = pandas.read_excel(excel,sheet_name=i)
-    var = df.to_dict(orient='split')
-    code = var["data"][2][1]
-    title = var["data"][2][2]
-    lecture_ = var["data"][2][3]
-    practical_ = var["data"][2][4]
-    units_ = var["data"][2][5]
+import json
+xl = "Mess Menu Sample.xlsx"  #accessing the mess menu
 
-    for v in var["data"]:
-        if type(v[6]) != float:
-            var1 = v[6][0]
-            if var1 == "P":
-                sec_type = "Practical"
-                sec_no_test = sec_no
-                sec_no = str(v[6])
-                if sec_no_test != sec_no and sec_no_test != "":
-                    instructors1=[]
-                    inst.append(dict1)
-                dict1 = {}
-                room = v[8]
-                dict1["section_type"] = sec_type
-                dict1["section_number"] = sec_no
-                dict1["room"] = room
-                instructors1 = [v[7]]
-                dict1["Instructors"] = instructors1
-                if len(v[9]) ==6:
-                    day = v[9][0]
-                    t1 = v[9][3]
-                    t2 = v[9][5]
-                else:
-                    day = v[9][0] +v[9][1]
-                    t1 = v[9][4]
-                    t2 = v[9][6]
-                
-                dict1["timing"] = [{
-                    "day" : day,
-                    "slots" : [t1,t2]
-                }]
-                
-                if v[7] == float:
-                    pass
-                ch = 1
-                            
-            
-            elif var1 == "L":
-                sec_type = "Lecture"
-                sec_no_test = sec_no
-                sec_no = str(v[6])
-                
-                if sec_no_test[0] == "P":
-                    inst.append(dict1)
-                
-                if sec_no_test != sec_no and sec_no_test!= "":
-                    instructors2=[]
-                instructors2 = [v[7]] 
-                room = v[8]
-                dict2["section_type"] = sec_type
-                dict2["section_number"] = sec_no
-                dict2["room"] = room
-                dict2["Instructors"] = instructors2
-                
-                ch = 2
-            elif var1 == "T":
-                if len(instructors3) != 0:
-                    dict3["Instructors"] = instructors3
-                sec_type = "Tutorial"
-                sec_no = str(v[6]) 
-                instructors3 = [v[7]]
-                room = v[8]
-                dict3["section_type"] = sec_type
-                dict3["section_number"] = sec_no
-                dict3["room"] = room
-                instructors1 = [v[7]]
-                ch=3
+dict1 = {}                    #initialising lists and dictionaries
+dict2 = {}                    
+blist = []
+llist = []
+dlist = []
 
-        else:
-            if ch == 1:
-                if type(v[7]) == float:
-                    continue
-                instructors1.append(v[7])
-                
-            
-            
-            elif ch == 2:
-                if type(v[7]) == float:
-                    pass 
-                instructors2.append(v[7])
-                
-            
-            
-            elif ch == 3:
-                if type(v[7]) == float:
-                    continue
-            
-                instructors3.append(v[7])
+df = pandas.read_excel(xl)          #reading the excel file(loading its content into the code)
+var = df.to_dict()                  #converting the loaded content into ditionary form,into variable var, for easier understanding and accessing the data
+ch = var.keys()
+for i in ch:                        #loop to access the elements of dictionary var
+    date = str(var[i][0].date())    #accesing date from datetime object and converting it into string such that it can be used as a key for dict2
+    b = var[i]                      #accessing each dictionary in var
+    
+    for n in range(2,11):           #accesing the food items of breakfast
+        if type(b[n]) != float:         #eliminating the case of empty cell in the excel file
+            if str(b[n])[0] != "*":     #eliminating the case of a cell containing ***********
+                blist.append(b[n])
         
-            
+    dict1["BREAKFAST"]  =blist
+    blist = []                          #emptying the list in order to eliminate repitative data
+
+    for n in range(13,21):
+        if type(b[n]) != float:         #eliminating the case of empty cell in the excel file
+            if str(b[n])[0] != "*":     #eliminating the case of a cell containing ***********
+                llist.append(b[n])
+    dict1["LUNCH"]  =llist
+    llist = []                          #emptying the list in order to eliminate repitative data
+
+    for n in range(23,30):
+        if type(b[n]) != float:         #eliminating the case of empty cell in the excel file
+            if str(b[n])[0] != "*":     #eliminating the case of a cell containing ***********
+                dlist.append(b[n])
+    dict1["DINNER"]  =dlist
+    dlist = []                          #emptying the list in order to eliminate repitative data
     
-    
-    
-    
-
-    dict = {"course_code" : code,
-            "course_title": title,  
-            "credits" : {
-                "lecture" : lecture_,
-                "practical" : practical_,
-                "units" : units_
-            }
-            } 
-    
-    if dict["course_code"] == "BIO F110":
-        dict["sections"]= inst
-    list_data.append(dict)
+    dict2[date]  =dict1            #appending the final dictionary
+    dict1 = {}                          #emptying the initial dictinary, in order to eliminate repitative data
 
 
-    
-with open("TASK16.json","a") as file:
-    json.dump(list_data,file,indent=2)
-
-
-
-
-
-
-
-
+with open("task.json","w") as file:     #creating/opening the json file in write mode
+    json.dump(dict2,file,indent=2)      #json serialization
